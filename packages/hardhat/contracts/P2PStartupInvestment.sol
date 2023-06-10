@@ -63,18 +63,18 @@ contract P2PStartupInvestment {
         require(
             _amount >= MIN_INVESTMENT_AMOUNT &&
                 _amount <= MAX_INVESTMENT_AMOUNT,
-            "Investment amount must be between MIN_INVESTMENT_AMOUNT and MAX_INVESTMENT_AMOUNT"
+            "Invalid investment amount"
         );
         require(
             _equityPercentage >= MIN_EQUITY_PERCENTAGE &&
                 _equityPercentage <= MAX_EQUITY_PERCENTAGE,
-            "Equity percentage must be between MIN_EQUITY_PERCENTAGE and MAX_EQUITY_PERCENTAGE"
+            "Invalid equity percentage"
         );
-        require(bytes(_startupName).length > 0, "Startup name cannot be empty");
-        require(bytes(_description).length > 0, "Description cannot be empty");
-        require(_valuation > 0, "Startup valuation must be greater than 0");
+        require(bytes(_startupName).length > 0, "Invalid startup name");
+        require(bytes(_description).length > 0, "Invalid description");
+        require(_valuation > 0, "Invalid startup valuation");
 
-        uint _fundingDeadline = block.timestamp + (1 days);
+        uint _fundingDeadline = block.number + (1 days);
         uint investmentId = investmentCount++;
 
         Investment storage investment = investments[investmentId];
@@ -112,7 +112,7 @@ contract P2PStartupInvestment {
         );
         require(investment.amount == msg.value, "Incorrect investment amount");
         require(
-            block.timestamp <= investment.fundingDeadline,
+            block.number <= investment.fundingDeadline,
             "Investment funding deadline has passed"
         );
         payable(address(this)).transfer(msg.value);
@@ -172,11 +172,9 @@ contract P2PStartupInvestment {
         );
     }
 
-    function withdrawFunds(
-        uint _investmentId
-    ) external onlyInvestor(_investmentId) {
-        Investment storage investment = investments[_investmentId];
-        require(!investment.active);
-        payable(msg.sender).transfer(investment.amount);
-    }
+    function withdrawFunds(uint _investmentId) external onlyInvestor(_investmentId) {
+    Investment storage investment = investments[_investmentId];
+    require(!investment.active, "Investment must not be active");
+    payable(msg.sender).transfer(investment.amount);
+}
 }
